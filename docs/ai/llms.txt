@@ -1,0 +1,9 @@
+# Project: Auto push test
+> Synchronized workspace mirror for AI Agents.
+
+## System Status
+- Status & Diagnostics: https://819christ.github.io/auto-push-test/ai/status.txt
+
+## File Index
+- fichier.py: https://819christ.github.io/auto-push-test/ai/raw/fichier.py
+- un dossier/index.html: https://819christ.github.io/auto-push-test/ai/raw/un dossier/index.html
