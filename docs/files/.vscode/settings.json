@@ -1,0 +1,8 @@
+{
+    "autoPush.includedPaths": [
+        "un dossier/index.html",
+        "fichier.py"
+    ],
+    "autoPush.enabled": true,
+    "autoPush.publicSiteUrl": "https://819christ.github.io/auto-push-test/"
+}

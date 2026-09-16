@@ -2,545 +2,154 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Auto push test — code source (lecture seule)</title>
 <meta name="robots" content="index,follow" />
 <style>
-  :root {
-    --bg-main: #1e1e1e;
-    --bg-sidebar: #252526;
-    --bg-header: #333333;
-    --bg-hover: #2a2d2e;
-    --bg-selected: #37373d;
-    --text-main: #cccccc;
-    --text-bright: #ffffff;
-    --text-muted: #888888;
-    --accent: #007acc;
-    --accent-orange: #ff8c00;
-    --border: #3c3c3c;
-    --code-bg: #1e1e1e;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg-main);
-    color: var(--text-main);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-  }
-  header {
-    background: var(--bg-header);
-    border-bottom: 1px solid var(--border);
-    padding: 0.6rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-    gap: 1rem;
-  }
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    min-width: 0;
-  }
-  .project-title {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--text-bright);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .badge-branch {
-    background: #0e639c;
-    color: #fff;
-    padding: 0.15rem 0.45rem;
-    border-radius: 3px;
-    font-size: 0.75rem;
-    font-family: var(--font-mono);
-  }
-  .header-links a {
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.85rem;
-  }
-  .header-links a:hover { color: var(--text-bright); text-decoration: underline; }
-  .layout {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-  }
-  /* Sidebar */
-  aside {
-    width: 320px;
-    background: var(--bg-sidebar);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-  }
-  .sidebar-search {
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .search-input {
-    width: 100%;
-    background: #3c3c3c;
-    border: 1px solid transparent;
-    color: var(--text-bright);
-    padding: 0.4rem 0.6rem;
-    border-radius: 3px;
-    font-size: 0.85rem;
-    outline: none;
-  }
-  .search-input:focus { border-color: var(--accent); }
-  .sidebar-header {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .tree-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0.25rem 0;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-  }
-  .tree-node {
-    user-select: none;
-  }
-  .tree-row {
-    display: flex;
-    align-items: center;
-    padding: 0.22rem 0.5rem;
-    cursor: pointer;
-    border-radius: 2px;
-    white-space: nowrap;
-  }
-  .tree-row:hover { background: var(--bg-hover); }
-  .tree-row.active { background: var(--bg-selected); color: var(--text-bright); font-weight: 600; }
-  .chevron {
-    width: 16px;
-    text-align: center;
-    display: inline-block;
-    color: var(--text-muted);
-    font-size: 0.7rem;
-    transition: transform 0.12s;
-  }
-  .chevron.open { transform: rotate(90deg); }
-  .icon { margin-right: 0.35rem; font-size: 0.9rem; }
-  .label { overflow: hidden; text-overflow: ellipsis; }
-  .tree-children { display: none; }
-  .tree-children.open { display: block; }
-  /* Main Viewer */
-  main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    background: var(--bg-main);
-  }
-  .file-toolbar {
-    background: var(--bg-sidebar);
-    border-bottom: 1px solid var(--border);
-    padding: 0.4rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    flex-shrink: 0;
-  }
-  .file-path {
-    font-family: var(--font-mono);
-    color: var(--text-bright);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .file-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-shrink: 0;
-  }
-  .btn {
-    background: #3a3d41;
-    border: 1px solid #454545;
-    color: var(--text-bright);
-    padding: 0.25rem 0.6rem;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-  }
-  .btn:hover { background: #45494e; }
-  .editor-wrapper {
-    flex: 1;
-    overflow: auto;
-    display: flex;
-    background: var(--code-bg);
-  }
-  .code-viewer {
-    counter-reset: line;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    line-height: 1.45;
-    padding: 1rem 0;
-    width: 100%;
-    overflow-x: auto;
-  }
-  .code-line {
-    counter-increment: line;
-    display: flex;
-    min-height: 1.45em;
-    padding: 0 1rem 0 0;
-  }
-  .code-line:hover {
-    background: rgba(255, 255, 255, 0.03);
-  }
-  .code-line::before {
-    content: counter(line);
-    display: inline-block;
-    width: 3.5em;
-    padding-right: 1.2em;
-    text-align: right;
-    color: #6e7681;
-    user-select: none;
-    flex-shrink: 0;
-    border-right: 1px solid var(--border);
-    margin-right: 1em;
-  }
-  .line-text {
-    white-space: pre;
-    color: #e6edf3;
-    tab-size: 2;
-  }
-  .empty-state {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    text-align: center;
-    color: var(--text-muted);
-  }
-  .empty-state h2 { color: var(--text-bright); margin-bottom: 0.75rem; font-size: 1.3rem; }
-  .empty-state p { max-width: 520px; line-height: 1.5; font-size: 0.95rem; margin-bottom: 1rem; }
-  .instruction-box {
-    background: #252526;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1rem 1.5rem;
-    max-width: 600px;
-    text-align: left;
-    color: var(--text-main);
-    font-size: 0.88rem;
-    line-height: 1.6;
-  }
-  .instruction-box strong { color: var(--accent-orange); }
-  @media (max-width: 768px) {
-    aside { width: 220px; }
-  }
+  :root { --bg:#1e1e1e; --fg:#d4d4d4; --muted:#888; --accent:#3794ff; --border:#333; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: ui-monospace, Consolas, monospace; background:var(--bg); color:var(--fg); display:flex; flex-direction:column; height:100vh; }
+  header { padding:1rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:1rem; }
+  header h1 { font-size:1.1rem; margin:0; }
+  header .badge { background:#264f78; color:#9cdcfe; padding:0.15rem 0.5rem; border-radius:4px; font-size:0.8rem; }
+  header a { color: var(--accent); margin-left:auto; text-decoration:none; }
+  .layout { flex:1; display:flex; overflow:hidden; }
+  .sidebar { width:280px; border-right:1px solid var(--border); overflow-y:auto; padding:0.5rem; }
+  .sidebar input { width:100%; padding:0.4rem; background:#2d2d2d; border:1px solid var(--border); color:var(--fg); border-radius:4px; margin-bottom:0.5rem; }
+  .tree-item { padding:0.25rem 0.4rem; cursor:pointer; white-space:nowrap; border-radius:4px; font-size:0.9rem; }
+  .tree-item:hover { background:#2a2d2e; }
+  .tree-item.active { background:#37373d; }
+  .tree-folder { color:#dcb67a; font-weight:bold; }
+  main { flex:1; overflow:auto; padding:0; }
+  .file-header { padding:0.75rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:1rem; position:sticky; top:0; background:var(--bg); }
+  .file-header button { background:#2d2d2d; border:1px solid var(--border); color:var(--fg); padding:0.3rem 0.7rem; border-radius:4px; cursor:pointer; }
+  .code-viewer { counter-reset: line; font-size:0.9rem; padding:1rem 0; }
+  .code-line { display:flex; min-height:1.4em; }
+  .code-line::before { counter-increment: line; content: counter(line); display:inline-block; width:3em; text-align:right; margin-right:1em; color:var(--muted); user-select:none; flex-shrink:0; }
+  .code-line-content { white-space:pre; flex:1; }
+  .status { padding:2rem; color:var(--muted); }
+  .loading { padding:2rem; color:var(--muted); }
 </style>
 </head>
 <body>
-
 <header>
-  <div class="header-left">
-    <span class="project-title">Auto push test</span>
-    <span class="badge-branch">main</span>
-    <span style="color:var(--text-muted); font-size:0.8rem;">(Lecture seule)</span>
-  </div>
-  <div class="header-links">
-    <a href="https://github.com/819christ/auto-push-test" target="_blank" rel="noopener">Dépôt GitHub ↗</a>
-  </div>
+  <h1>Auto push test</h1>
+  <span class="badge">main</span>
+  <span class="badge">Lecture seule</span>
+  <a href="https://github.com/819christ/auto-push-test" target="_blank">Dépôt GitHub ↗</a>
 </header>
-
 <div class="layout">
-  <aside>
-    <div class="sidebar-search">
-      <input type="text" id="searchInput" class="search-input" placeholder="🔍 Filtrer les fichiers..." />
-    </div>
-    <div class="sidebar-header">
-      <span id="fileCount">2 fichier(s)</span>
-      <span style="font-size:0.75rem; cursor:pointer;" id="toggleTreeBtn">Tout déplier</span>
-    </div>
-    <div class="tree-container" id="treeContainer"></div>
-  </aside>
-
+  <div class="sidebar">
+    <input id="filter" placeholder="Filtrer les fichiers..." />
+    <div id="tree" class="loading">Chargement de l'arborescence...</div>
+  </div>
   <main>
-    <div class="file-toolbar" id="fileToolbar" style="display:none;">
-      <div class="file-path" id="activeFilePath"></div>
-      <div class="file-actions">
-        <span id="activeFileSize" style="color:var(--text-muted);"></span>
-        <button class="btn" id="copyBtn">📋 Copier</button>
-        <a class="btn" id="rawLink" target="_blank">🔗 Fichier brut</a>
-      </div>
+    <div id="fileHeader" class="file-header" style="display:none">
+      <strong id="filePath"></strong>
+      <button id="copyBtn">Copier</button>
+      <a id="rawLink" href="#" target="_blank" style="color:var(--accent)">Fichier brut</a>
     </div>
-
-    <div class="editor-wrapper" id="editorWrapper" style="display:none;">
-      <div class="code-viewer" id="codeViewer"></div>
-    </div>
-
-    <div class="empty-state" id="emptyState">
-      <h2>Auto push test</h2>
-      <p>Sélectionnez un fichier dans l'arborescence à gauche pour afficher son contenu.</p>
-      <div class="instruction-box">
-        <strong>💡 Utilisation pour assistants IA (Claude, ChatGPT, Gemini, Grok) :</strong><br/>
-        Cette URL publique donne un accès direct en lecture seule aux fichiers de ce projet. Vous pouvez donner cette URL à votre chatbot pour qu'il consulte votre code source sans configuration ni clé API requise.<br/><br/>
-        <em>Dernière publication : 16/09/2026 10:14:50</em>
-      </div>
-    </div>
+    <div id="content" class="status">Sélectionne un fichier dans la liste à gauche.</div>
   </main>
 </div>
-
-<script id="filesData" type="application/json">[{"p":"fichier.py","s":30,"c":"print(\"le test a fonctionné\")"},{"p":"un dossier/index.html","s":245,"c":"\u003c!DOCTYPE html>\r\n\u003chtml lang=\"en\">\r\n\u003chead>\r\n    \u003cmeta charset=\"UTF-8\">\r\n    \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    \u003ctitle>Document\u003c/title>\r\n\u003c/head>\r\n\u003cbody>\r\n    \u003cH1>LE TEST A FONCTIONNÉ\u003c/H1>\r\n\u003c/body>\r\n\u003c/html>"}]</script>
-
 <script>
-(function() {
-  var filesRaw = JSON.parse(document.getElementById('filesData').textContent);
-  var filesMap = {};
-  filesRaw.forEach(function(f) { filesMap[f.p] = f; });
+const OWNER = "819christ";
+const REPO = "auto-push-test";
+const BRANCH = "main";
+const EXCLUDED_PREFIXES = ["docs/", ".git/", ".vscode/"];
 
-  var treeRoot = { name: '', isDir: true, children: {}, path: '' };
-  filesRaw.forEach(function(file) {
-    var parts = file.p.split('/');
-    var curr = treeRoot;
-    var accumulated = '';
-    for (var i = 0; i < parts.length; i++) {
-      var part = parts[i];
-      accumulated = accumulated ? accumulated + '/' + part : part;
-      var isLast = (i === parts.length - 1);
-      if (!curr.children[part]) {
-        curr.children[part] = {
-          name: part,
-          isDir: !isLast,
-          path: accumulated,
-          children: isLast ? null : {}
-        };
-      }
-      curr = curr.children[part];
-    }
-  });
+let allPaths = [];
 
-  var treeContainer = document.getElementById('treeContainer');
-  var activeFilePath = document.getElementById('activeFilePath');
-  var activeFileSize = document.getElementById('activeFileSize');
-  var fileToolbar = document.getElementById('fileToolbar');
-  var editorWrapper = document.getElementById('editorWrapper');
-  var emptyState = document.getElementById('emptyState');
-  var codeViewer = document.getElementById('codeViewer');
-  var rawLink = document.getElementById('rawLink');
-  var copyBtn = document.getElementById('copyBtn');
-  var searchInput = document.getElementById('searchInput');
-  var toggleTreeBtn = document.getElementById('toggleTreeBtn');
+function isExcluded(path) {
+  return EXCLUDED_PREFIXES.some(p => path.startsWith(p));
+}
 
-  var currentActiveRow = null;
-  var currentActiveFile = null;
-
-  function formatBytes(bytes) {
-    if (bytes < 1024) return bytes + ' octets';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' Ko';
-    return (bytes / 1048576).toFixed(1) + ' Mo';
+async function loadTree() {
+  const treeEl = document.getElementById("tree");
+  try {
+    const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    allPaths = data.tree
+      .filter(item => item.type === "blob" && !isExcluded(item.path))
+      .map(item => item.path)
+      .sort();
+    renderTree(allPaths);
+  } catch (err) {
+    treeEl.textContent = "Impossible de charger la liste des fichiers (" + err.message + "). Réessaie dans quelques instants.";
   }
+}
 
-  function renderTree(node, container, depth) {
-    var keys = Object.keys(node.children || {}).sort(function(a, b) {
-      var nodeA = node.children[a];
-      var nodeB = node.children[b];
-      if (nodeA.isDir !== nodeB.isDir) return nodeA.isDir ? -1 : 1;
-      return a.localeCompare(b);
-    });
-
-    keys.forEach(function(key) {
-      var item = node.children[key];
-      var nodeEl = document.createElement('div');
-      nodeEl.className = 'tree-node';
-      nodeEl.setAttribute('data-path', item.path);
-
-      var rowEl = document.createElement('div');
-      rowEl.className = 'tree-row';
-      rowEl.style.paddingLeft = (depth * 14 + 8) + 'px';
-
-      if (item.isDir) {
-        var chevron = document.createElement('span');
-        chevron.className = 'chevron';
-        chevron.textContent = '▶';
-        rowEl.appendChild(chevron);
-
-        var icon = document.createElement('span');
-        icon.className = 'icon';
-        icon.textContent = '📁';
-        rowEl.appendChild(icon);
-
-        var label = document.createElement('span');
-        label.className = 'label';
-        label.textContent = item.name;
-        rowEl.appendChild(label);
-
-        nodeEl.appendChild(rowEl);
-
-        var childrenEl = document.createElement('div');
-        childrenEl.className = 'tree-children';
-        renderTree(item, childrenEl, depth + 1);
-        nodeEl.appendChild(childrenEl);
-
-        rowEl.addEventListener('click', function(e) {
-          var isOpen = childrenEl.classList.toggle('open');
-          chevron.classList.toggle('open', isOpen);
-          icon.textContent = isOpen ? '📂' : '📁';
-        });
-      } else {
-        var spacer = document.createElement('span');
-        spacer.className = 'chevron';
-        rowEl.appendChild(spacer);
-
-        var icon = document.createElement('span');
-        icon.className = 'icon';
-        icon.textContent = '📄';
-        rowEl.appendChild(icon);
-
-        var label = document.createElement('span');
-        label.className = 'label';
-        label.textContent = item.name;
-        rowEl.appendChild(label);
-
-        nodeEl.appendChild(rowEl);
-
-        rowEl.addEventListener('click', function() {
-          selectFile(item.path, rowEl);
-        });
-      }
-
-      container.appendChild(nodeEl);
-    });
+function renderTree(paths) {
+  const treeEl = document.getElementById("tree");
+  if (paths.length === 0) {
+    treeEl.textContent = "Aucun fichier publié pour le moment.";
+    return;
   }
-
-  function selectFile(filePath, rowEl) {
-    if (currentActiveRow) currentActiveRow.classList.remove('active');
-    currentActiveRow = rowEl;
-    if (rowEl) rowEl.classList.add('active');
-
-    var file = filesMap[filePath];
-    if (!file) return;
-    currentActiveFile = file;
-
-    activeFilePath.textContent = file.p;
-    activeFileSize.textContent = formatBytes(file.s);
-    rawLink.href = './files/' + file.p.split('/').map(encodeURIComponent).join('/');
-
-    var text = file.c;
-    var lines = text.split('\n');
-    codeViewer.innerHTML = '';
-    var frag = document.createDocumentFragment();
-    for (var i = 0; i < lines.length; i++) {
-      var lineDiv = document.createElement('div');
-      lineDiv.className = 'code-line';
-      var textSpan = document.createElement('span');
-      textSpan.className = 'line-text';
-      textSpan.textContent = lines[i] || ' ';
-      lineDiv.appendChild(textSpan);
-      frag.appendChild(lineDiv);
-    }
-    codeViewer.appendChild(frag);
-
-    emptyState.style.display = 'none';
-    fileToolbar.style.display = 'flex';
-    editorWrapper.style.display = 'flex';
+  treeEl.innerHTML = "";
+  for (const path of paths) {
+    const div = document.createElement("div");
+    div.className = "tree-item";
+    div.textContent = path;
+    div.onclick = () => openFile(path, div);
+    treeEl.appendChild(div);
   }
+}
 
-  copyBtn.addEventListener('click', function() {
-    if (!currentActiveFile) return;
-    navigator.clipboard.writeText(currentActiveFile.c).then(function() {
-      copyBtn.textContent = '✅ Copié !';
-      setTimeout(function() { copyBtn.textContent = '📋 Copier'; }, 2000);
-    });
-  });
+async function openFile(path, el) {
+  document.querySelectorAll(".tree-item").forEach(e => e.classList.remove("active"));
+  if (el) el.classList.add("active");
 
-  searchInput.addEventListener('input', function() {
-    var q = searchInput.value.toLowerCase().trim();
-    var allNodes = treeContainer.querySelectorAll('.tree-node');
-    if (!q) {
-      allNodes.forEach(function(el) { el.style.display = ''; });
-      return;
-    }
+  const contentEl = document.getElementById("content");
+  const fileHeaderEl = document.getElementById("fileHeader");
+  document.getElementById("filePath").textContent = path;
+  const rawUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${path}`;
+  document.getElementById("rawLink").href = rawUrl;
+  fileHeaderEl.style.display = "flex";
+  contentEl.className = "loading";
+  contentEl.textContent = "Chargement du contenu...";
 
-    allNodes.forEach(function(el) {
-      var p = el.getAttribute('data-path') || '';
-      var isMatch = p.toLowerCase().indexOf(q) !== -1;
-      if (isMatch) {
-        el.style.display = '';
-        var parent = el.parentElement;
-        while (parent && parent.classList.contains('tree-children')) {
-          parent.classList.add('open');
-          var prev = parent.previousElementSibling;
-          if (prev) {
-            var ch = prev.querySelector('.chevron');
-            if (ch) ch.classList.add('open');
-            var ic = prev.querySelector('.icon');
-            if (ic) ic.textContent = '📂';
-          }
-          parent = parent.parentElement ? parent.parentElement.parentElement : null;
-        }
-      } else {
-        var hasMatchInChildren = el.querySelector('.tree-node[data-path*="' + q + '"]');
-        el.style.display = hasMatchInChildren ? '' : 'none';
-      }
-    });
-  });
-
-  var allExpanded = false;
-  toggleTreeBtn.addEventListener('click', function() {
-    allExpanded = !allExpanded;
-    var children = treeContainer.querySelectorAll('.tree-children');
-    var chevrons = treeContainer.querySelectorAll('.chevron');
-    var icons = treeContainer.querySelectorAll('.icon');
-    children.forEach(function(c) { c.classList.toggle('open', allExpanded); });
-    chevrons.forEach(function(ch) { ch.classList.toggle('open', allExpanded); });
-    icons.forEach(function(ic) {
-      if (ic.textContent === '📁' || ic.textContent === '📂') {
-        ic.textContent = allExpanded ? '📂' : '📁';
-      }
-    });
-    toggleTreeBtn.textContent = allExpanded ? 'Tout replier' : 'Tout déplier';
-  });
-
-  renderTree(treeRoot, treeContainer, 0);
-
-  // Déplier automatiquement le 1er niveau
-  var firstLevel = treeContainer.querySelectorAll(':scope > .tree-node > .tree-children');
-  firstLevel.forEach(function(fl) {
-    fl.classList.add('open');
-    var row = fl.previousElementSibling;
-    if (row) {
-      var ch = row.querySelector('.chevron');
-      if (ch) ch.classList.add('open');
-      var ic = row.querySelector('.icon');
-      if (ic) ic.textContent = '📂';
-    }
-  });
-
-  // Sélectionner le 1er fichier s'il y en a un
-  if (filesRaw.length > 0) {
-    var firstPath = filesRaw[0].p;
-    var firstRow = treeContainer.querySelector('.tree-node[data-path="' + firstPath + '"] > .tree-row');
-    selectFile(firstPath, firstRow);
+  try {
+    const res = await fetch(rawUrl);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    renderCode(text);
+  } catch (err) {
+    contentEl.className = "status";
+    contentEl.textContent = "Impossible de charger ce fichier (" + err.message + ").";
   }
-})();
+}
+
+function renderCode(text) {
+  const contentEl = document.getElementById("content");
+  contentEl.className = "code-viewer";
+  contentEl.innerHTML = "";
+  const lines = text.split("\n");
+  for (const line of lines) {
+    const row = document.createElement("div");
+    row.className = "code-line";
+    const span = document.createElement("span");
+    span.className = "code-line-content";
+    span.textContent = line;
+    row.appendChild(span);
+    contentEl.appendChild(row);
+  }
+}
+
+document.getElementById("copyBtn").onclick = async () => {
+  const text = Array.from(document.querySelectorAll(".code-line-content")).map(e => e.textContent).join("\n");
+  await navigator.clipboard.writeText(text);
+  const btn = document.getElementById("copyBtn");
+  const original = btn.textContent;
+  btn.textContent = "Copié !";
+  setTimeout(() => (btn.textContent = original), 1500);
+};
+
+document.getElementById("filter").addEventListener("input", (e) => {
+  const q = e.target.value.toLowerCase();
+  renderTree(allPaths.filter(p => p.toLowerCase().includes(q)));
+});
+
+loadTree();
 </script>
 </body>
 </html>
