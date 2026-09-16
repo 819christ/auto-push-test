@@ -193,26 +193,40 @@
     display: flex;
     background: var(--code-bg);
   }
-  .line-numbers {
-    padding: 1rem 0.6rem 1rem 0.8rem;
+  .code-viewer {
+    counter-reset: line;
     font-family: var(--font-mono);
     font-size: 0.85rem;
-    color: #6e7681;
-    text-align: right;
-    user-select: none;
     line-height: 1.45;
-    border-right: 1px solid var(--border);
-    background: #181818;
+    padding: 1rem 0;
+    width: 100%;
+    overflow-x: auto;
   }
-  .code-content {
-    padding: 1rem;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    line-height: 1.45;
+  .code-line {
+    counter-increment: line;
+    display: flex;
+    min-height: 1.45em;
+    padding: 0 1rem 0 0;
+  }
+  .code-line:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .code-line::before {
+    content: counter(line);
+    display: inline-block;
+    width: 3.5em;
+    padding-right: 1.2em;
+    text-align: right;
+    color: #6e7681;
+    user-select: none;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    margin-right: 1em;
+  }
+  .line-text {
     white-space: pre;
     color: #e6edf3;
-    overflow-x: auto;
-    flex: 1;
+    tab-size: 2;
   }
   .empty-state {
     flex: 1;
@@ -262,7 +276,7 @@
       <input type="text" id="searchInput" class="search-input" placeholder="🔍 Filtrer les fichiers..." />
     </div>
     <div class="sidebar-header">
-      <span id="fileCount">1 fichier(s)</span>
+      <span id="fileCount">2 fichier(s)</span>
       <span style="font-size:0.75rem; cursor:pointer;" id="toggleTreeBtn">Tout déplier</span>
     </div>
     <div class="tree-container" id="treeContainer"></div>
@@ -279,8 +293,7 @@
     </div>
 
     <div class="editor-wrapper" id="editorWrapper" style="display:none;">
-      <div class="line-numbers" id="lineNumbers"></div>
-      <div class="code-content" id="codeContent"></div>
+      <div class="code-viewer" id="codeViewer"></div>
     </div>
 
     <div class="empty-state" id="emptyState">
@@ -289,13 +302,13 @@
       <div class="instruction-box">
         <strong>💡 Utilisation pour assistants IA (Claude, ChatGPT, Gemini, Grok) :</strong><br/>
         Cette URL publique donne un accès direct en lecture seule aux fichiers de ce projet. Vous pouvez donner cette URL à votre chatbot pour qu'il consulte votre code source sans configuration ni clé API requise.<br/><br/>
-        <em>Dernière publication : 16/09/2026 07:10:42</em>
+        <em>Dernière publication : 16/09/2026 10:08:01</em>
       </div>
     </div>
   </main>
 </div>
 
-<script id="filesData" type="application/json">[{"p":"un dossier/index.html","s":256,"c":"\u003c!DOCTYPE html>\r\n\u003chtml lang=\"en\">\r\n\u003chead>\r\n    \u003cmeta charset=\"UTF-8\">\r\n    \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    \u003ctitle>Document\u003c/title>\r\n\u003c/head>\r\n\u003cbody>\r\n    \u003cH1>LE TEST A FONCTIONNÉ maintemant\u003c/H1>\r\n\u003c/body>\r\n\u003c/html>"}]</script>
+<script id="filesData" type="application/json">[{"p":"fichier.py","s":30,"c":"print(\"le test a fonctionné\")"},{"p":"un dossier/index.html","s":256,"c":"\u003c!DOCTYPE html>\r\n\u003chtml lang=\"en\">\r\n\u003chead>\r\n    \u003cmeta charset=\"UTF-8\">\r\n    \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    \u003ctitle>Document\u003c/title>\r\n\u003c/head>\r\n\u003cbody>\r\n    \u003cH1>LE TEST A FONCTIONNÉ maintemant\u003c/H1>\r\n\u003c/body>\r\n\u003c/html>"}]</script>
 
 <script>
 (function() {
@@ -330,8 +343,7 @@
   var fileToolbar = document.getElementById('fileToolbar');
   var editorWrapper = document.getElementById('editorWrapper');
   var emptyState = document.getElementById('emptyState');
-  var lineNumbers = document.getElementById('lineNumbers');
-  var codeContent = document.getElementById('codeContent');
+  var codeViewer = document.getElementById('codeViewer');
   var rawLink = document.getElementById('rawLink');
   var copyBtn = document.getElementById('copyBtn');
   var searchInput = document.getElementById('searchInput');
@@ -433,10 +445,18 @@
 
     var text = file.c;
     var lines = text.split('\n');
-    var nums = [];
-    for (var i = 1; i <= lines.length; i++) nums.push(i);
-    lineNumbers.textContent = nums.join('\n');
-    codeContent.textContent = text;
+    codeViewer.innerHTML = '';
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < lines.length; i++) {
+      var lineDiv = document.createElement('div');
+      lineDiv.className = 'code-line';
+      var textSpan = document.createElement('span');
+      textSpan.className = 'line-text';
+      textSpan.textContent = lines[i] || ' ';
+      lineDiv.appendChild(textSpan);
+      frag.appendChild(lineDiv);
+    }
+    codeViewer.appendChild(frag);
 
     emptyState.style.display = 'none';
     fileToolbar.style.display = 'flex';
